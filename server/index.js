@@ -1,3 +1,5 @@
+const { appendFile } = require("fs");
+
 const server = require("http").createServer();
 const io = require("socket.io")(server, {
   cors: {
@@ -6,27 +8,89 @@ const io = require("socket.io")(server, {
 });
 
 const PORT = 4000;
-const NEW_CHAT_MESSAGE_EVENT = "newChatMessage";
 
-io.on("connection", (socket) => {
-  console.log(`Client ${socket.id} connected`);
+class Player {
+  constructor(id, username) {
+      this.id = id;
+      this.username = username;
+  }
+}
 
-  // Join a conversation
-  const { roomId } = socket.handshake.query;
-  socket.join(roomId);
+//wating players
+let wps = []
 
-  // Listen for new messages
-  socket.on(NEW_CHAT_MESSAGE_EVENT, (data) => {
-    io.in(roomId).emit(NEW_CHAT_MESSAGE_EVENT, data);
-  });
+let lastPlayer = null;
 
-  // Leave the room if the user closes the socket
+function matchmake() {
+  // adding last player at the top of the pile
+  if(lastPlayer != null) wps = [lastPlayer, ...wps];
+
+  // save the last impaire player for the next matchmaking
+  if (wps.length % 2 == 1) {
+      console.log("impaire")
+      lastPlayer = wps[wps.length - 1];
+      wps.splice(wps.length - 1, 1);
+  }
+
+  // matchmake
+  let matchs = []
+  const midLength = wps.length / 2;
+
+  for (let x = 0; x < midLength; x++) {
+      const _rnd = dblRnd(wps.length-1);
+      matchs.push({ red: wps.splice(_rnd.red, 1)[0], blue: wps.splice(_rnd.blue, 1)[0] });
+  }
+
+  return matchs;
+}
+
+// random number
+function rnd(max) {
+  return Math.floor(Math.random() * max);
+}
+
+//double random number
+function dblRnd(max){
+  let red, blue;
+
+  red = rnd(max);
+  blue = rnd(max);
+
+  while (red != blue){
+      blue = rnd(max);
+  }
+
+  return {red, blue};
+}
+
+setInterval(() => {
+  if(wps.length > 1) {
+    const result = matchmake();
+    console.log(result);
+    
+    io.sockets.emit("initGame", result);
+    
+  }
+}, 1000)
+
+io.on('connection', socket => {
+  socket.on("addPlayer", (obj) => {
+    wps.push(new Player(socket.id, obj.username));
+  })
+
+  socket.on("removePlayer", (obj) => {
+    const removeIndex = wps.findIndex(item => item.id === obj.id);
+    wps.splice(removeIndex, 1)
+  })
+
   socket.on("disconnect", () => {
-    console.log(`Client ${socket.id} diconnected`);
-    socket.leave(roomId);
-  });
-});
+    socket.on("removePlayer", (obj) => {
+      const removeIndex = wps.findIndex(item => item.id === obj.id);
+      wps.splice(removeIndex, 1)
+    })
+  })
+})
 
-server.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
-});
+server.listen(PORT, function() {
+  console.log('listening on port ', PORT)
+})

@@ -1,17 +1,15 @@
 import React from "react";
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Home, Matchmaking } from './pages';
 import "./index.css";
-import Home from "./Home/Home";
-import ChatRoom from "./ChatRoom/ChatRoom";
 
 function App() {
   return (
     <Router>
-      <Switch>
-        <Route exact path="/" component={Home} />
-        <Route exact path="/:roomId" component={ChatRoom} />
-      </Switch>
+      <Routes>
+        <Route exact path="/" element={<Home/>} />
+        <Route exact path="/m?=:matchId" element={<Matchmaking/>} />
+      </Routes>
     </Router>
   );
 }
