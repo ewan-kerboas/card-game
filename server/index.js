@@ -41,8 +41,7 @@ function generateRandomNumber(numberOfCharacters) {
   }
 
   return randomValues;
-} 
-
+}
 
 io.on('connection', socket => {
   socket.on("addPlayer", (obj) => {
@@ -67,14 +66,18 @@ io.on('connection', socket => {
   });
 
   socket.on("removePlayer", (obj) => {
-    const removeIndex = wps.findIndex(item => item.id === obj.id);
-    wps.splice(removeIndex, 1)
+    for(let i in wps) {
+      if(wps[i].id == socket.id) {
+        let result = wps.findIndex(x => x.id === socket.id);
+        console.log(result)
+      } else return;
+    }
   })
 
   socket.on("disconnect", () => {
     socket.on("removePlayer", (obj) => {
       const removeIndex = wps.findIndex(item => item.id === obj.id);
-      wps.splice(removeIndex, 1)
+      wps.splice(removeIndex, 2)
     })
   })
 })
