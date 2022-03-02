@@ -44,12 +44,29 @@ function generateRandomNumber(numberOfCharacters) {
 }
 
 io.on('connection', socket => {
+
+  socket.on("gameInit", (obj) => {
+    console.log(obj)
+    let id;
+
+    for(i in games) {
+      if(games[i].id == `game-${obj}`) {
+        id = games[i].id;
+      } else console.log('the game doesn\'t exist')
+    }
+
+    console.log(`Salut : ${id}`)
+
+    if(id != undefined) {
+      io.to(`${id}`).emit("hello", "salut");
+    }
+  })
+
   socket.on("addPlayer", (obj) => {
     if(wps.length == 0) {
       wps.push(new Player(socket.id, obj.username, socket));
     } else {
       let randomId = generateRandomNumber(12);
-      console.log(randomId);
 
       wps[0].socket.join(`game-${randomId}`);
       socket.join(`game-${randomId}`);
@@ -61,23 +78,21 @@ io.on('connection', socket => {
 
       games.push(game);
 
-      console.log(games);
+      io.to(`game-${randomId}`).emit("isInGame", ({is: true, id: randomId}));
+
+      wps = [];
     }
   });
 
   socket.on("removePlayer", (obj) => {
-    for(let i in wps) {
-      if(wps[i].id == socket.id) {
-        let result = wps.findIndex(x => x.id === socket.id);
-        console.log(result)
-      } else return;
-    }
+    if(wps.length > 1) return;
+    wps = [];
   })
 
   socket.on("disconnect", () => {
     socket.on("removePlayer", (obj) => {
-      const removeIndex = wps.findIndex(item => item.id === obj.id);
-      wps.splice(removeIndex, 2)
+      if(wps.length > 1) return;
+      wps = [];
     })
   })
 })

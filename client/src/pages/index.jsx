@@ -1,2 +1,2 @@
 export { Home } from './Home';
-export { Matchmaking } from './Matchmaking';
+export { Game } from './Game';

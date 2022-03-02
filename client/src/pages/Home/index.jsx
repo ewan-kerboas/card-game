@@ -12,8 +12,11 @@ export function Home() {
 
   const navigate = useNavigate();
 
-  setInterval(() => {
-  }, 1000)
+  socket.on('isInGame', (obj) => {
+    if(obj.is == true) {
+      navigate(`game-${obj.id}`, {socket: socket})
+    }
+  })
 
   function joinMatchmaking() {
     setInMatchmaking(true)

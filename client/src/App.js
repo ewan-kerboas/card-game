@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Home, Matchmaking } from './pages';
+import { Home, Game } from './pages';
 import "./index.css";
 
 function App() {
@@ -8,7 +8,7 @@ function App() {
     <Router>
       <Routes>
         <Route exact path="/" element={<Home/>} />
-        <Route exact path="/m?=:matchId" element={<Matchmaking/>} />
+        <Route exact path="/game-:gameId" element={<Game/>} />
       </Routes>
     </Router>
   );
